@@ -1,36 +1,34 @@
-Note:
 
-This repository has multiple branches with different implementations for
-Realtek bluetooth usb drivers. Depending on your kernel version and your
-hardware model different branches may or may not work. If you are unsure
-which branch to use you and you are on a modern kernel you should probably
-start with the 'kernel' branch. If that doesn't work you are encouraged
-to try the other branches and to check the github issues.
+In this document, we introduce how to support rtk 8723 BT driver in Linux system.
+Support kernel version 2.6.32~3.8.0
 
 ===========================================================================================================
 
-In this document, we introduce how to support driver btusb with Realtek device support in Linux system.
+1. Install
 
+(1)	Build and install USB driver,change to the driver direcotory
+
+	$sudo make install -s
+
+
+
+(3)	Insert RTK8723/RTK8761/RTK8821 dongle
+	Check LMP subversion by the following command
+	$hciconfig -a
+	
+	Now RTK chip can be recognized by the system and bluetooth function can be used.
 ===========================================================================================================
 
-1. To Install the driver:
+2. Uninstall
 
-(1)	Change to the directory containing the source files.
+(1)	unplug RTK8723/RTK8761/RTK8821 dongle,if the chip can not unplug,reboot after the following steps
 
-	make
-	sudo make install
-
-(2)	Remove the old btusb and insert the new module using
-	sudo modprobe -rv btusb
-	sudo modprobe -v btusb
-
-(2)	Insert RTK8723AE/AU dongle
-
-	Now RTK8723AE/AU can be recognized by the system and bluetooth function can be used.
-
+(3)	Uninstall,change back to the driver direcotory
+	$sudo make uninstall -s
+ 
 ===========================================================================================================
 
-3. Install BlueZ
+3. Install BlueZ(optional)
 
 The default BlueZ in Ubuntu maybe out of date
 New versions can be downloaded from http://www.bluez.org/   
@@ -71,8 +69,7 @@ Make sure system is connected to the internet.
 
 (2) Pair your source device and connect to a2dp sink at the source side
 	Once you've done this, the source device should show up as an input device under pulseaudio. 
-	Then you need to tell pulseaudio to route this audio input to your output (such as your speakers,
-	or a bluetooth headset). You can do this from the commandline using the pactl command:
+	Then you need to tell pulseaudio to route this audio input to your output (such as your speakers, or a bluetooth headset). You can do this from the commandline using the pactl command:
 
 	$pactl load-module module-loopback source=$BTSOURCE sink=$SINK
 
@@ -83,10 +80,7 @@ Make sure system is connected to the internet.
 	$pacmd list-sinks
 
 	Be careful however to remove this loopback connection before you drop this audio connection! 
-	pulseaudio appears to re-connect the loopback connection to the next available audio input when
-	the connection drops, so if for instance your laptop microphone is unmuted, you may get some
-	very bad feedback. To drop this loopback connection when you're done, run:
-
+	pulseaudio appears to re-connect the loopback connection to the next available audio input when the connection drops, so if for instance your laptop microphone is unmuted, you may get some very bad feedback. To drop this loopback connection when you're done, run:
 	$pactl unload-module $(pactl list short modules | grep "loopback.*$BTSOURCE" | cut -f1)
 
 	Again, replace "$BTSOURCE" with the name for the pulseaudio source that refers to your bluetooth device.
@@ -108,7 +102,7 @@ Make sure system is connected to the internet.
 	Bus 002 Device 003: ID 0e0f:0002 VMware, Inc. Virtual USB Hub
 	Bus 002 Device 004: ID 0e0f:0008 VMware, Inc.
 
-(2) Create a new rule in /etc/udev/rules.d/  with the name "90-bluetoothwakeup.rules" for example, by the way the name is not important,
+(2) Create a new rule in /etc/udev/rules.d/  with the name "90-bluetoothwakeup.rules" for example ,by the way ,the name is not important,
 	
 	$sudo gedit /etc/udev/rules.d/90-bluetoothwakeup.rules
      
@@ -118,5 +112,11 @@ Make sure system is connected to the internet.
 	In my case, the idVendor="0bda" and idProduct="1724". echo "enabled" or "disabled" to enable or disable bluetooth remote wakeup ability.
     	then save and close the file .
 
-(3) Reinsert the RTK8723AE/AU dongle,now you can wakeup your suspend system by bluetooth device.
+(3) Reinsert the RTK8723 dongle,now you can wakeup your suspend system by bluetooth device.
 
+
+===========================================================================================================
+6. check firmware
+After install this package,the firmware file should be copied to /lib/firmware. 
+This is the directory where driver will call request_firmware to find out. 
+For some embeded linux OS, request_firmware maybe refernced to local/user/firmware.
